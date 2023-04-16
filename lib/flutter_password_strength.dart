@@ -15,7 +15,7 @@ class FlutterPasswordStrength extends StatefulWidget {
   final double height;
 
   //Strength bar colors are changed depending on strength
-  final Animatable<Color>? strengthColors;
+  final Animatable<Color?>? strengthColors;
 
   //Strength bar background color
   final Color backgroundColor;
@@ -30,15 +30,15 @@ class FlutterPasswordStrength extends StatefulWidget {
   final void Function(double strength)? strengthCallback;
 
   const FlutterPasswordStrength(
-      { Key? key,
-        required this.password,
-        this.width,
-        this.height = 5,
-        this.strengthColors,
-        this.backgroundColor = Colors.grey,
-        this.radius = 0,
-        this.duration,
-        this.strengthCallback})
+      {Key? key,
+      required this.password,
+      this.width,
+      this.height = 5,
+      this.strengthColors,
+      this.backgroundColor = Colors.grey,
+      this.radius = 0,
+      this.duration,
+      this.strengthCallback})
       : super(key: key);
 
   /*
@@ -133,9 +133,20 @@ class _FlutterPasswordStrengthState extends State<FlutterPasswordStrength>
         AnimationController(duration: widget._duration, vsync: this);
     _strengthBarAnimation =
         Tween<double>(begin: _begin, end: _end).animate(_animationController);
+
+    if (widget.password != null && widget.password!.isNotEmpty) {
+      //calculate initial strength
+      _passwordStrength = estimateBruteforceStrength(widget.password ?? "");
+
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        animate();
+      });
+    }
+
     _strengthBarColors = widget._strengthColors;
-    _strengthBarColor =
-        _strengthBarColors.evaluate(AlwaysStoppedAnimation(_passwordStrength)) ?? Colors.transparent;
+    _strengthBarColor = _strengthBarColors
+            .evaluate(AlwaysStoppedAnimation(_passwordStrength)) ??
+        Colors.transparent;
 
     _backgroundColor = widget.backgroundColor;
 
@@ -157,12 +168,13 @@ class _FlutterPasswordStrengthState extends State<FlutterPasswordStrength>
 
     _strengthBarAnimation =
         Tween<double>(begin: _begin, end: _end).animate(_animationController);
-    _strengthBarColor =
-        _strengthBarColors.evaluate(AlwaysStoppedAnimation(_passwordStrength)) ?? Colors.transparent;
+    _strengthBarColor = _strengthBarColors
+            .evaluate(AlwaysStoppedAnimation(_passwordStrength)) ??
+        Colors.transparent;
 
     _animationController.forward(from: 0.0);
 
-    if(_strengthCallback != null){
+    if (_strengthCallback != null) {
       _strengthCallback!(_passwordStrength);
     }
   }
@@ -237,7 +249,8 @@ class StrengthBar extends CustomPainter {
   double barRadius;
   double percent;
 
-  StrengthBar({required this.barColor, required this.barRadius, required this.percent});
+  StrengthBar(
+      {required this.barColor, required this.barRadius, required this.percent});
 
   @override
   void paint(Canvas canvas, Size size) {
